@@ -1,0 +1,64 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          npm install
+          # Ou use "yarn install" se estiver usando Yarn
+
+      - name: Run unit tests
+        run: npm test
+        # Ou use o comando correspondente para executar seus testes unitários
+
+      - name: Build application
+        run: npm run build
+        # Ou use o comando correspondente para construir sua aplicação
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: my-app
+          path: path/to/your/artifact
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: test
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: my-app
+          path: path/to/your/artifact
+
+      # Adicione aqui os comandos necessários para fazer o deploy da sua aplicação no ambiente de teste
+
+  notify:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send email on failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.example.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'CI/CD Pipeline Failed'
+          to: ${{ github.actor }}@example.com
+          body: 'The CI/CD pipeline failed for your project.'
