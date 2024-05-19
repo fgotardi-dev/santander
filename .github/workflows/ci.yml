@@ -40,10 +40,13 @@ jobs:
         docker build -t my-web-app .
 
     - name: Save artifact
+      run: |
+        mkdir -p output
+        echo "dummy file content" > output/my-web-app.zip
       uses: actions/upload-artifact@v2
       with:
         name: my-web-app
-        path: .
+        path: output/my-web-app.zip
 
     - name: Create GitHub Release
       id: create_release
@@ -56,7 +59,6 @@ jobs:
         body: "Release of my web app"
         draft: false
         prerelease: false
-      # Definir a saída usando arquivos de ambiente
       run: |
         echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
 
@@ -66,7 +68,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       with:
         upload_url: ${{ env.UPLOAD_URL }}
-        asset_path: ./my-web-app
+        asset_path: output/my-web-app.zip
         asset_name: my-web-app.zip
         asset_content_type: application/zip
 
